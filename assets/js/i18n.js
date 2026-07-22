@@ -88,7 +88,7 @@ const DICT = {
 };
 
 function getLang() {
-  return localStorage.getItem("smn_lang") || "en";
+  return localStorage.getItem("smn_lang") || "fr";
 }
 
 function setLang(lang) {

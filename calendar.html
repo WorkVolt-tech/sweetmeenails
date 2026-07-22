@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Availability — Sweet Mee Nails Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/styles.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="admin-sidebar"></aside>
+  <main class="admin-main">
+    <h1 id="page-title">Availability</h1>
+    <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:1.25rem;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:1.5rem">
+        <div class="card">
+          <h3 id="new-slot-title"></h3>
+          <form id="slot-form">
+            <div class="field"><label id="lbl-date"></label><input type="date" id="slot-date" required /></div>
+            <div class="grid grid-2">
+              <div class="field"><label id="lbl-start"></label><input type="time" id="slot-start" value="10:00" required /></div>
+              <div class="field"><label id="lbl-end"></label><input type="time" id="slot-end" value="11:00" required /></div>
+            </div>
+            <div class="field"><label id="lbl-max"></label><input type="number" id="slot-max" value="1" min="1" required /></div>
+            <div class="field"><label id="lbl-note"></label><input id="slot-note" /></div>
+            <button class="btn btn-primary" style="width:100%" id="lbl-add-slot"></button>
+          </form>
+        </div>
+        <div class="card">
+          <h3 id="block-title"></h3>
+          <form id="block-form">
+            <div class="field"><label id="lbl-block-date"></label><input type="date" id="block-date" required /></div>
+            <label style="display:flex;gap:0.5rem;align-items:center;font-weight:400;margin-bottom:1rem">
+              <input type="checkbox" id="block-whole-day" checked style="width:auto" /> <span id="lbl-whole-day"></span>
+            </label>
+            <div class="field"><label id="lbl-reason"></label><input id="block-reason" /></div>
+            <button class="btn btn-secondary" style="width:100%" id="lbl-add-block"></button>
+          </form>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1.5rem">
+        <div class="card">
+          <h3 id="upcoming-title"></h3>
+          <ul id="slots-list" style="max-height:320px;overflow-y:auto;padding-left:0;list-style:none;margin:0.75rem 0 0"></ul>
+        </div>
+        <div class="card">
+          <h3 id="blocked-title"></h3>
+          <ul id="blocked-list" style="padding-left:0;list-style:none;margin:0.75rem 0 0"></ul>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/supabase-client.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/admin-shell.js"></script>
+<script>
+async function loadSlotsAndBlocks() {
+  const lang = getLang();
+  const today = new Date().toISOString().slice(0, 10);
+  const [{ data: slots }, { data: blocked }] = await Promise.all([
+    sb.from("availability_slots").select("*").gte("slot_date", today).order("slot_date").order("start_time").limit(80),
+    sb.from("blocked_dates").select("*").gte("blocked_date", today).order("blocked_date").limit(40),
+  ]);
+
+  document.getElementById("slots-list").innerHTML = (slots || []).map((s) => `
+    <li style="display:flex;justify-content:space-between;align-items:center;background:var(--lavender-soft);border-radius:8px;padding:0.5rem 0.75rem;margin-bottom:0.4rem;font-size:0.85rem">
+      <span>${s.slot_date} · ${s.start_time.slice(0,5)}–${s.end_time.slice(0,5)} (${s.max_appointments})</span>
+      <button data-id="${s.id}" data-active="${s.is_active}" class="toggle-slot btn" style="padding:0.2rem 0.6rem;font-size:0.7rem;background:${s.is_active ? "#dcfce7" : "#e5e7eb"};color:${s.is_active ? "#166534" : "#4b5563"}">
+        ${s.is_active ? (lang === "fr" ? "Actif" : "Active") : (lang === "fr" ? "Bloqué" : "Blocked")}
+      </button>
+    </li>`).join("");
+
+  document.getElementById("blocked-list").innerHTML = (blocked || []).map((b) => `
+    <li style="display:flex;justify-content:space-between;align-items:center;background:var(--lavender-soft);border-radius:8px;padding:0.5rem 0.75rem;margin-bottom:0.4rem;font-size:0.85rem">
+      <span>${b.blocked_date} ${b.start_time ? b.start_time.slice(0,5) + "–" + b.end_time.slice(0,5) : (lang === "fr" ? "Journée entière" : "Whole day")}${b.reason ? " · " + b.reason : ""}</span>
+      <button data-id="${b.id}" class="remove-block" style="background:none;border:none;color:#dc2626;font-size:0.75rem;cursor:pointer">${lang === "fr" ? "Retirer" : "Remove"}</button>
+    </li>`).join("");
+
+  document.querySelectorAll(".toggle-slot").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      await sb.from("availability_slots").update({ is_active: btn.dataset.active !== "true" }).eq("id", btn.dataset.id);
+      loadSlotsAndBlocks();
+    });
+  });
+  document.querySelectorAll(".remove-block").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      await sb.from("blocked_dates").delete().eq("id", btn.dataset.id);
+      loadSlotsAndBlocks();
+    });
+  });
+}
+
+async function renderContent() {
+  const lang = getLang();
+  document.getElementById("page-title").textContent = lang === "fr" ? "Disponibilités" : "Availability";
+  const labels = lang === "fr"
+    ? { newSlot: "Ajouter un créneau", date: "Date", start: "Heure de début", end: "Heure de fin", max: "Nombre maximal", note: "Note interne (facultatif)", add: "Ajouter le créneau",
+        block: "Bloquer une date", wholeDay: "Journée entière", reason: "Raison (facultatif)", addBlock: "Bloquer la date", upcoming: "Créneaux à venir", blockedDates: "Dates bloquées" }
+    : { newSlot: "Add available slot", date: "Date", start: "Start time", end: "End time", max: "Max appointments", note: "Internal note (optional)", add: "Add slot",
+        block: "Block a date", wholeDay: "Entire day", reason: "Reason (optional)", addBlock: "Block date", upcoming: "Upcoming slots", blockedDates: "Blocked dates" };
+
+  document.getElementById("new-slot-title").textContent = labels.newSlot;
+  document.getElementById("lbl-date").textContent = labels.date;
+  document.getElementById("lbl-start").textContent = labels.start;
+  document.getElementById("lbl-end").textContent = labels.end;
+  document.getElementById("lbl-max").textContent = labels.max;
+  document.getElementById("lbl-note").textContent = labels.note;
+  document.getElementById("lbl-add-slot").textContent = labels.add;
+  document.getElementById("block-title").textContent = labels.block;
+  document.getElementById("lbl-block-date").textContent = labels.date;
+  document.getElementById("lbl-whole-day").textContent = labels.wholeDay;
+  document.getElementById("lbl-reason").textContent = labels.reason;
+  document.getElementById("lbl-add-block").textContent = labels.addBlock;
+  document.getElementById("upcoming-title").textContent = labels.upcoming;
+  document.getElementById("blocked-title").textContent = labels.blockedDates;
+
+  document.getElementById("slot-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    await sb.from("availability_slots").insert({
+      slot_date: document.getElementById("slot-date").value,
+      start_time: document.getElementById("slot-start").value,
+      end_time: document.getElementById("slot-end").value,
+      max_appointments: Number(document.getElementById("slot-max").value),
+      internal_note: document.getElementById("slot-note").value || null,
+    });
+    document.getElementById("slot-note").value = "";
+    loadSlotsAndBlocks();
+  });
+
+  document.getElementById("block-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const wholeDay = document.getElementById("block-whole-day").checked;
+    await sb.from("blocked_dates").insert({
+      blocked_date: document.getElementById("block-date").value,
+      start_time: wholeDay ? null : document.getElementById("slot-start").value,
+      end_time: wholeDay ? null : document.getElementById("slot-end").value,
+      reason: document.getElementById("block-reason").value || null,
+    });
+    document.getElementById("block-reason").value = "";
+    loadSlotsAndBlocks();
+  });
+
+  await loadSlotsAndBlocks();
+}
+document.addEventListener("DOMContentLoaded", () => initAdminPage(renderContent));
+</script>
+</body>
+</html>

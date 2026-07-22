@@ -15,6 +15,14 @@ function renderSiteHeader() {
           <a href="contact.html">${t("nav_contact")}</a>
         </nav>
         <div class="header-actions">
+          <div class="header-socials">
+            <a href="https://instagram.com/sweetmeenails" aria-label="Instagram" title="Instagram">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+            </a>
+            <a href="https://facebook.com" aria-label="Facebook" title="Facebook">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.4h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12Z"/></svg>
+            </a>
+          </div>
           <div class="lang-toggle">
             <button class="${lang === "en" ? "active" : ""}" onclick="setLang('en')">EN</button>
             <button class="${lang === "fr" ? "active" : ""}" onclick="setLang('fr')">FR</button>

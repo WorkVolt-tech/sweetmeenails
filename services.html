@@ -3,94 +3,64 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Messages — Sweet Mee Nails Admin</title>
+<title>Services — Sweet Mee Nails</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/css/styles.css" />
+<link rel="stylesheet" href="assets/css/styles.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
-<div class="admin-shell">
-  <aside class="admin-sidebar" id="admin-sidebar"></aside>
-  <main class="admin-main">
-    <h1 id="page-title">Messages</h1>
-    <div class="grid" style="grid-template-columns:300px 1fr;margin-top:1.25rem;align-items:start">
-      <div class="card" style="padding:0;max-height:600px;overflow-y:auto" id="conversation-list"></div>
-      <div class="card chat-panel" id="chat-area">
-        <p class="text-muted" style="margin:auto" id="empty-chat-note"></p>
-      </div>
+<div id="site-header"></div>
+
+<section class="section">
+  <div class="container">
+    <div class="section-heading">
+      <h2 data-i18n="nav_services"></h2>
+      <div class="brush-divider"></div>
     </div>
-  </main>
-</div>
+    <div id="services-by-category" style="display:flex;flex-direction:column;gap:3rem"></div>
+  </div>
+</section>
 
-<script src="../assets/js/config.js"></script>
-<script src="../assets/js/supabase-client.js"></script>
-<script src="../assets/js/i18n.js"></script>
-<script src="../assets/js/admin-shell.js"></script>
+<div id="site-footer"></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/supabase-client.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/format.js"></script>
+<script src="assets/js/site-chrome.js"></script>
 <script>
-let activeConversationId = null;
-let activeChannel = null;
-
-async function loadConversations() {
-  const { data } = await sb.from("conversations").select("*, appointments(reference_number), clients(full_name)")
-    .order("last_message_at", { ascending: false, nullsFirst: false }).limit(50);
+async function loadServices() {
   const lang = getLang();
-  document.getElementById("conversation-list").innerHTML = (data || []).map((c) => `
-    <button class="conv-item" data-id="${c.id}" style="display:block;width:100%;text-align:left;padding:0.75rem 1rem;border:none;border-bottom:1px solid var(--lavender-soft);background:${activeConversationId === c.id ? "var(--lavender-soft)" : "transparent"};cursor:pointer">
-      <div style="font-weight:500">${c.clients?.full_name || ""}</div>
-      <div class="text-muted" style="font-size:0.75rem">${c.appointments?.reference_number || ""}</div>
-    </button>`).join("") || `<p class="text-muted" style="padding:1rem">${lang === "fr" ? "Aucune conversation." : "No conversations yet."}</p>`;
-  document.querySelectorAll(".conv-item").forEach((btn) => btn.addEventListener("click", () => openConversation(btn.dataset.id)));
-}
+  const { data: services } = await sb
+    .from("services").select("*, service_categories(name_en, name_fr)")
+    .eq("is_active", true).order("display_order");
 
-async function openConversation(id) {
-  activeConversationId = id;
-  loadConversations();
-  const { data: msgs } = await sb.from("messages").select("*").eq("conversation_id", id).order("created_at");
-  await sb.from("messages").update({ is_read_by_admin: true }).eq("conversation_id", id).eq("sender_type", "client");
-
-  document.getElementById("chat-area").innerHTML = `
-    <div class="chat-messages" id="chat-messages">${(msgs || []).map(renderBubble).join("")}</div>
-    <form class="chat-input-row" id="chat-form">
-      <input id="chat-draft" placeholder="${getLang() === "fr" ? "Écrire une réponse…" : "Type a reply…"}" />
-      <button class="btn btn-primary">${getLang() === "fr" ? "Envoyer" : "Send"}</button>
-    </form>`;
-  scrollChatToBottom();
-
-  document.getElementById("chat-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const input = document.getElementById("chat-draft");
-    const body = input.value.trim();
-    if (!body) return;
-    input.value = "";
-    await sb.from("messages").insert({ conversation_id: id, sender_type: "admin", body });
-    await sb.from("conversations").update({ last_message_at: new Date().toISOString() }).eq("id", id);
+  const groups = {};
+  (services || []).forEach((s) => {
+    const key = lang === "en" ? (s.service_categories?.name_en || "Other") : (s.service_categories?.name_fr || "Autre");
+    groups[key] = groups[key] || [];
+    groups[key].push(s);
   });
 
-  if (activeChannel) sb.removeChannel(activeChannel);
-  activeChannel = sb.channel(`messages-${id}`)
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${id}` }, (payload) => {
-      const el = document.getElementById("chat-messages");
-      if (el) { el.insertAdjacentHTML("beforeend", renderBubble(payload.new)); scrollChatToBottom(); }
-    })
-    .subscribe();
+  document.getElementById("services-by-category").innerHTML = Object.entries(groups).map(([category, items]) => `
+    <div>
+      <h3>${category}</h3>
+      <div class="grid grid-3" style="margin-top:1rem">
+        ${items.map((s) => `
+          <div class="card">
+            <h4>${lang === "en" ? s.name_en : s.name_fr}</h4>
+            <p class="text-muted">${lang === "en" ? (s.description_en || "") : (s.description_fr || "")}</p>
+            <div style="display:flex;justify-content:space-between;margin:0.75rem 0;font-size:0.9rem">
+              <span style="font-weight:600;color:var(--gold)">${s.price_is_starting_at ? t("from_price") + " " : ""}${formatPrice(s.price_cents)}</span>
+              <span class="text-muted">${s.duration_minutes} min</span>
+            </div>
+            <a href="book.html?service=${s.id}" class="btn btn-secondary" style="width:100%">${t("nav_book")}</a>
+          </div>`).join("")}
+      </div>
+    </div>`).join("");
 }
-
-function renderBubble(m) {
-  return `<div class="chat-bubble ${m.sender_type}">${m.body || ""}</div>`;
-}
-function scrollChatToBottom() {
-  const el = document.getElementById("chat-messages");
-  if (el) el.scrollTop = el.scrollHeight;
-}
-
-async function renderContent() {
-  const lang = getLang();
-  document.getElementById("page-title").textContent = "Messages";
-  document.getElementById("empty-chat-note").textContent = lang === "fr" ? "Sélectionnez une conversation" : "Select a conversation";
-  await loadConversations();
-}
-document.addEventListener("DOMContentLoaded", () => initAdminPage(renderContent));
+document.addEventListener("DOMContentLoaded", loadServices);
 </script>
 </body>
 </html>

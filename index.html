@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sweet Mee Nails</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+<div id="site-header"></div>
+
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <p class="eyebrow">Montréal</p>
+      <h1 data-i18n="hero_title">Sweet Mee Nails</h1>
+      <p class="text-muted" style="font-size:1.05rem;max-width:420px" data-i18n="hero_subtitle"></p>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.5rem">
+        <a href="book.html" class="btn btn-primary" data-i18n="book_cta"></a>
+        <a href="services.html" class="btn btn-ghost" data-i18n="nav_services"></a>
+      </div>
+    </div>
+    <div class="hero-art">Sweet Mee Nails</div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-heading">
+      <p class="eyebrow" data-i18n="nav_services"></p>
+      <h2 data-i18n="featured_services"></h2>
+      <div class="brush-divider"></div>
+    </div>
+    <div id="featured-services" class="grid grid-3"></div>
+  </div>
+</section>
+
+<section class="section tinted">
+  <div class="container">
+    <div class="section-heading">
+      <p class="eyebrow" data-i18n="nav_gallery"></p>
+      <h2 data-i18n="recent_work"></h2>
+      <div class="brush-divider"></div>
+    </div>
+    <div id="gallery-preview" class="gallery-grid"></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container grid grid-2">
+    <div>
+      <h2 data-i18n="hours"></h2>
+      <p class="text-muted" id="hours-text" style="white-space:pre-line"></p>
+    </div>
+    <div>
+      <h2 data-i18n="testimonials"></h2>
+      <div id="testimonials-list" style="display:flex;flex-direction:column;gap:1rem"></div>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/supabase-client.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/format.js"></script>
+<script src="assets/js/site-chrome.js"></script>
+<script>
+async function loadHome() {
+  const lang = getLang();
+
+  const { data: services } = await sb
+    .from("services").select("*, service_categories(name_en, name_fr)")
+    .eq("is_active", true).order("display_order").limit(6);
+  document.getElementById("featured-services").innerHTML = (services || []).map((s) => `
+    <div class="card">
+      <h3>${lang === "en" ? s.name_en : s.name_fr}</h3>
+      <p class="text-muted">${lang === "en" ? (s.description_en || "") : (s.description_fr || "")}</p>
+      <div style="display:flex;justify-content:space-between;margin:0.75rem 0;font-size:0.9rem">
+        <span style="font-weight:600;color:var(--gold)">${s.price_is_starting_at ? t("from_price") + " " : ""}${formatPrice(s.price_cents)}</span>
+        <span class="text-muted">${s.duration_minutes} min</span>
+      </div>
+      <a href="book.html?service=${s.id}" class="btn btn-secondary" style="width:100%">${t("nav_book")}</a>
+    </div>`).join("");
+
+  const { data: gallery } = await sb
+    .from("gallery_images").select("*").eq("is_active", true).order("display_order").limit(8);
+  document.getElementById("gallery-preview").innerHTML = (gallery || []).map((img) => `
+    <figure><img src="${img.image_url}" alt="${lang === "en" ? (img.style_name_en || "") : (img.style_name_fr || "")}" /></figure>
+  `).join("");
+
+  const { data: settingsRows } = await sb.from("website_settings").select("*");
+  const settings = {};
+  (settingsRows || []).forEach((r) => { settings[r.key] = lang === "fr" ? r.value_fr : r.value_en; });
+  document.getElementById("hours-text").textContent = settings.hours || "";
+
+  const { data: testimonials } = await sb
+    .from("testimonials").select("*").eq("is_active", true).order("display_order").limit(3);
+  document.getElementById("testimonials-list").innerHTML = (testimonials || []).map((tst) => `
+    <div class="card">
+      <p style="font-style:italic">"${lang === "en" ? tst.quote_en : tst.quote_fr}"</p>
+      <p style="font-weight:600;color:var(--royal);margin-top:0.5rem">— ${tst.client_name}</p>
+    </div>`).join("");
+}
+document.addEventListener("DOMContentLoaded", loadHome);
+</script>
+</body>
+</html>

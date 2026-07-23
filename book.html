@@ -221,6 +221,7 @@ async function submitBooking() {
   confirmEl.classList.remove("hidden");
   confirmEl.innerHTML = `
     <div class="card" style="text-align:center">
+      <img src="assets/images/logo.png" alt="Sweet Mée Nails" style="height:60px;width:auto;margin:0 auto 1rem" />
       <h3>${getLang() === "en" ? "Request received" : "Demande reçue"}</h3>
       <p class="text-muted">${t("pending_notice")}</p>
       <p class="text-muted" style="margin-top:1.5rem">${t("reference_label")}</p>

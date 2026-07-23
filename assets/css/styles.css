@@ -155,7 +155,9 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--r
 .site-footer { margin-top: 5rem; background: #fff; border-top: 1px solid var(--lavender-soft); }
 .footer-grid { display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); padding: 3rem 0; }
 @media (max-width: 640px) {
-  .footer-grid { grid-template-columns: 1fr; gap: 2.25rem; }
+  .footer-grid { grid-template-columns: 1fr; gap: 2.25rem; text-align: center; }
+  .footer-grid img { margin-left: auto; margin-right: auto; }
+  .footer-grid p.text-muted { margin-left: auto; margin-right: auto; }
 }
 .footer-bottom { text-align: center; font-size: 0.8rem; color: rgba(45,27,54,0.5); padding: 1rem 0; border-top: 1px solid var(--lavender-soft); }
 

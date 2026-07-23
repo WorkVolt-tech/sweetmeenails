@@ -107,6 +107,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--r
   border-bottom: 1px solid var(--lavender-soft);
 }
 .site-header .bar { display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 0; gap: 0.75rem; }
+.bar-left { display: flex; align-items: center; gap: 0.9rem; }
 .logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; color: var(--royal); text-decoration: none; white-space: nowrap; }
 .logo span { color: var(--blossom-dark); }
 .nav-links { display: flex; gap: 1.25rem; flex-wrap: wrap; }

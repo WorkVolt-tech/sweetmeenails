@@ -37,7 +37,7 @@ function renderAdminShell(admin) {
   const current = location.pathname.split("/").pop();
   document.getElementById("admin-sidebar").innerHTML = `
     <div style="padding:0 0.75rem 1.5rem">
-      <div class="logo" style="font-size:1.2rem">Sweet Mée Nails</div>
+      <img src="../assets/images/logo.png" alt="Sweet Mée Nails" style="height:38px;width:auto" />
       <p class="text-muted" style="font-size:0.75rem;margin-top:0.25rem">${admin.full_name}</p>
     </div>
     <nav>

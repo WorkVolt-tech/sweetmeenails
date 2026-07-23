@@ -29,7 +29,7 @@ function renderSiteHeader() {
   el.innerHTML = `
     <header class="site-header">
       <div class="container bar">
-        <a href="index.html" class="logo">Sweet Mée <span>Nails</span></a>
+        <a href="index.html" class="logo"><img src="assets/images/logo.png" alt="Sweet Mée Nails" style="height:46px;width:auto;display:block" /></a>
         <nav class="nav-links">${navLinksHtml}</nav>
         <div class="header-actions">
           <div class="desktop-only-actions" style="display:flex;align-items:center;gap:0.75rem">
@@ -67,8 +67,8 @@ function renderSiteFooter() {
     <footer class="site-footer">
       <div class="container footer-grid">
         <div>
-          <div class="logo">Sweet Mée Nails</div>
-          <p class="text-muted" style="max-width:280px">${t("hero_subtitle")}</p>
+          <img src="assets/images/logo.png" alt="Sweet Mée Nails" style="height:56px;width:auto" />
+          <p class="text-muted" style="max-width:280px;margin-top:0.75rem">${t("hero_subtitle")}</p>
         </div>
         <div>
           <p style="font-weight:600;color:var(--royal)">${t("nav_contact")}</p>

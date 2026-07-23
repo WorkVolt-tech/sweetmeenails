@@ -5,7 +5,7 @@ function renderSiteHeader() {
   el.innerHTML = `
     <header class="site-header">
       <div class="container bar">
-        <a href="index.html" class="logo">Sweet Mee <span>Nails</span></a>
+        <a href="index.html" class="logo">Sweet Mée <span>Nails</span></a>
         <nav class="nav-links">
           <a href="index.html">${t("nav_home")}</a>
           <a href="services.html">${t("nav_services")}</a>
@@ -41,7 +41,7 @@ function renderSiteFooter() {
     <footer class="site-footer">
       <div class="container footer-grid">
         <div>
-          <div class="logo">Sweet Mee Nails</div>
+          <div class="logo">Sweet Mée Nails</div>
           <p class="text-muted" style="max-width:280px">${t("hero_subtitle")}</p>
         </div>
         <div>
@@ -57,7 +57,7 @@ function renderSiteFooter() {
         </div>
       </div>
       <div class="footer-bottom">
-        © ${new Date().getFullYear()} Sweet Mee Nails ·
+        © ${new Date().getFullYear()} Sweet Mée Nails ·
         <a href="policies.html" style="text-decoration:underline">${lang === "fr" ? "Politiques" : "Policies"}</a>
       </div>
     </footer>`;

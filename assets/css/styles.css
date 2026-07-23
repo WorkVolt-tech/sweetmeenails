@@ -106,13 +106,43 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--r
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--lavender-soft);
 }
-.site-header .bar { display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 0; flex-wrap: wrap; gap: 0.75rem; }
-.logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; color: var(--royal); text-decoration: none; }
+.site-header .bar { display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 0; gap: 0.75rem; }
+.logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; color: var(--royal); text-decoration: none; white-space: nowrap; }
 .logo span { color: var(--blossom-dark); }
 .nav-links { display: flex; gap: 1.25rem; flex-wrap: wrap; }
 .nav-links a { font-size: 0.9rem; font-weight: 500; color: rgba(74,29,92,0.8); text-decoration: none; }
 .nav-links a:hover { color: var(--royal); }
 .header-actions { display: flex; align-items: center; gap: 0.75rem; }
+.menu-toggle { display: none; background: none; border: none; padding: 0.4rem; cursor: pointer; color: var(--royal); }
+.mobile-nav-panel { display: none; }
+
+/* Mobile nav: below 860px, collapse links + lang toggle + socials into a
+   dropdown panel behind a hamburger button. The Book button always stays
+   visible in the top bar, per the "keep Book button visible" requirement. */
+@media (max-width: 860px) {
+  .menu-toggle { display: inline-flex; }
+  .desktop-only-actions { display: none; }
+  .nav-links { display: none; }
+  .mobile-nav-panel {
+    display: none;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem 1.25rem 1.25rem;
+    border-top: 1px solid var(--lavender-soft);
+    background: var(--canvas);
+  }
+  .mobile-nav-panel.open { display: flex; }
+  .mobile-nav-panel a {
+    padding: 0.6rem 0.25rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: rgba(74,29,92,0.85);
+    text-decoration: none;
+    border-bottom: 1px solid var(--lavender-soft);
+  }
+  .mobile-nav-panel .mobile-extras { display: flex; align-items: center; justify-content: space-between; padding-top: 0.75rem; }
+}
+
 
 .lang-toggle { display: inline-flex; border: 1px solid var(--lavender); border-radius: 999px; padding: 3px; background: #fff; }
 .lang-toggle button {
@@ -123,6 +153,9 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--r
 
 .site-footer { margin-top: 5rem; background: #fff; border-top: 1px solid var(--lavender-soft); }
 .footer-grid { display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); padding: 3rem 0; }
+@media (max-width: 640px) {
+  .footer-grid { grid-template-columns: 1fr; gap: 2.25rem; }
+}
 .footer-bottom { text-align: center; font-size: 0.8rem; color: rgba(45,27,54,0.5); padding: 1rem 0; border-top: 1px solid var(--lavender-soft); }
 
 .hero { background: linear-gradient(180deg, var(--lavender-soft), var(--canvas)); }
